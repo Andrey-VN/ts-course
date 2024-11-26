@@ -1,0 +1,8 @@
+{
+  "dependencies": {
+    "sort-by": "^1.2.0"
+  },
+  "scripts": {
+    "build" : "tsc && node index.js"
+  }
+}
