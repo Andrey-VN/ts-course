@@ -8,7 +8,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-const URLS = ['http1', 'http2', 'http3'];
+const URLS = ['http1', 'http2', 'http3', 'https://dummyjson.com/products/1'];
 var RequestType;
 (function (RequestType) {
     RequestType["POST"] = "post";
@@ -58,10 +58,10 @@ class BuilderRequest {
                 return;
             }
             const requests = [];
+            const resArrayDate = [];
             yield Promise.all(this.urls.map((u) => __awaiter(this, void 0, void 0, function* () {
                 yield Promise.all(this.headersArray.map((h) => __awaiter(this, void 0, void 0, function* () {
                     yield Promise.all(this.requestTypes.map((t) => __awaiter(this, void 0, void 0, function* () {
-                        console.log('33');
                         switch (t) {
                             case RequestType.POST:
                                 if (!this.bodys.length) {
@@ -71,7 +71,10 @@ class BuilderRequest {
                                         url: u
                                     };
                                     requests.push(reqDate);
-                                    yield this.requestProcessing(reqDate);
+                                    const date = yield this.requestProcessing(reqDate);
+                                    if (date) {
+                                        resArrayDate.push(date);
+                                    }
                                     break;
                                 }
                                 yield Promise.all(this.bodys.map((b) => __awaiter(this, void 0, void 0, function* () {
@@ -82,7 +85,10 @@ class BuilderRequest {
                                         body: b
                                     };
                                     requests.push(reqDate);
-                                    yield this.requestProcessing(reqDate);
+                                    const date = yield this.requestProcessing(reqDate);
+                                    if (date) {
+                                        resArrayDate.push(date);
+                                    }
                                 })));
                                 break;
                             case RequestType.GET:
@@ -92,13 +98,16 @@ class BuilderRequest {
                                     url: u
                                 };
                                 requests.push(reqDate);
-                                yield this.requestProcessing(reqDate);
+                                const date = yield this.requestProcessing(reqDate);
+                                if (date) {
+                                    resArrayDate.push(date);
+                                }
                                 break;
                         }
                     })));
                 })));
             })));
-            console.log(requests);
+            return resArrayDate;
         });
     }
     requestProcessing(reqDate) {
@@ -113,6 +122,7 @@ class BuilderRequest {
                 if (!res.ok) {
                     console.log(`Ошибка ${requestType} запроса по url : ${url}. ${res.status}`);
                 }
+                return yield res.json();
             }
             catch (e) {
                 if (e instanceof Error)
@@ -127,25 +137,15 @@ var MIMEType;
     MIMEType["IMAGEJPEG"] = "image/jpeg";
     MIMEType["APPLICATIONPNG"] = "application/pdf";
 })(MIMEType || (MIMEType = {}));
-new BuilderRequest()
-    .addUrl('http1')
-    .addUrl('http2')
-    .addUrl('http2')
-    .addHeader({
-    Authorization: 'Authorization',
-    'Content-Type': MIMEType.APPLICATIONPNG
-})
-    .addRequestType(RequestType.POST)
-    .addRequestType(RequestType.GET)
-    .addRequestType(RequestType.GET)
-    .addBody({
-    id: '1',
-    name: 'andrey',
-    date: new Date()
-})
-    .addBody({
-    id: '2',
-    name: 'ivan',
-    date: new Date()
-})
-    .exec();
+(() => __awaiter(void 0, void 0, void 0, function* () {
+    console.log(yield new BuilderRequest()
+        .addUrl('https://dummyjson.com/products/1')
+        .addHeader({})
+        .addRequestType(RequestType.GET)
+        .addBody({
+        id: '1',
+        name: 'andrey',
+        date: new Date()
+    })
+        .exec());
+}))();

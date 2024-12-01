@@ -1,4 +1,4 @@
-const URLS = ['http1', 'http2', 'http3'] as const
+const URLS = ['http1', 'http2', 'http3', 'https://dummyjson.com/products/1'] as const
 
 enum RequestType {
 	POST = 'post',
@@ -67,11 +67,11 @@ class BuilderRequest {
 		}
 
 		const requests: IRequestDate[] = [];
+		const resArrayDate: any[] = [];
 
 		await Promise.all(this.urls.map(async u => {
 			await Promise.all(this.headersArray.map(async h => {
 				await Promise.all(this.requestTypes.map(async t => {
-					console.log('33')
 					switch (t) {
 						case RequestType.POST:
 							if (!this.bodys.length) {
@@ -81,7 +81,10 @@ class BuilderRequest {
 									url: u
 								}
 								requests.push(reqDate);
-								await this.requestProcessing(reqDate);
+								const date = await this.requestProcessing(reqDate);
+								if (date) {
+									resArrayDate.push(date);
+								}
 								break;
 							}
 
@@ -93,7 +96,10 @@ class BuilderRequest {
 									body: b
 								}
 								requests.push(reqDate);
-								await this.requestProcessing(reqDate);
+								const date = await this.requestProcessing(reqDate);
+								if (date) {
+									resArrayDate.push(date);
+								}
 							}));
 							break;
 						case RequestType.GET:
@@ -103,17 +109,20 @@ class BuilderRequest {
 								url: u
 							}
 							requests.push(reqDate);
-							await this.requestProcessing(reqDate);
+							const date = await this.requestProcessing(reqDate);
+							if (date) {
+								resArrayDate.push(date);
+							}
 							break;
 					}
 				}))
 			}))
 		}))
 
-		console.log(requests);
+		return resArrayDate;
 	}
 
-	private async requestProcessing(reqDate: IRequestDate) {
+	private async requestProcessing(reqDate: IRequestDate): Promise<any> {
 		const { url, requestType, headers, body } = reqDate;
 		try {
 			const res = await fetch(url, {
@@ -125,6 +134,8 @@ class BuilderRequest {
 			if (!res.ok) {
 				console.log(`Ошибка ${requestType} запроса по url : ${url}. ${res.status}`)
 			}
+
+			return await res.json()
 		} catch (e) {
 			if (e instanceof Error)
 				console.log(`Ошибка ${requestType} запроса по url : ${url}. ${e.message}`)
@@ -139,25 +150,16 @@ enum MIMEType {
 	APPLICATIONPNG = 'application/pdf'
 }
 
-new BuilderRequest()
-	.addUrl('http1')
-	.addUrl('http2')
-	.addUrl('http2')
-	.addHeader({
-		Authorization: 'Authorization',
-		'Content-Type': MIMEType.APPLICATIONPNG
-	})
-	.addRequestType(RequestType.POST)
-	.addRequestType(RequestType.GET)
-	.addRequestType(RequestType.GET)
-	.addBody({
-		id: '1',
-		name: 'andrey',
-		date: new Date()
-	})
-	.addBody({
-		id: '2',
-		name: 'ivan',
-		date: new Date()
-	})
-	.exec()
+(async () => {
+	console.log(await new BuilderRequest()
+		.addUrl('https://dummyjson.com/products/1')
+		.addHeader({})
+		.addRequestType(RequestType.GET)
+		.addBody({
+			id: '1',
+			name: 'andrey',
+			date: new Date()
+		})
+		.exec())
+})()
+
